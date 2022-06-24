@@ -34,7 +34,7 @@ icd10 = pd.read_csv('resource/icd10.csv', usecols=['诊断代码', '诊断名称
 icd9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作代码', '手术操作名称'])
 drg = pd.read_csv('resource/drg.csv', usecols=['ADRG', 'ADRG名称'])
 result = pd.read_csv('resource/utl_rate.csv',
-                     usecols=['主要诊断编码', '主要诊断名称', '手术编码', '手术名称', 'ADRG', '病案数'])
+                     usecols=['主要诊断编码', '诊断名称', '手术编码', '手术操作名称', 'ADRG', '病案数'])
 
 c1.subheader('搜索信息')
 icd10_empty = c1.empty()
