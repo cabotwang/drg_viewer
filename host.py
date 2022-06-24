@@ -101,8 +101,8 @@ if icd_code:
 if icd9_code:
     result = result[result['手术编码'] == icd9_code]
 with c2:
-if drg_code or (icd_code or icd9_code):
-    # st.write(icd_code, icd9_code, drg_code)
-    result['使用率'] = result['病案数']/result['病案数'].sum()
-    result['使用率'] = result['使用率'].apply(lambda x: r'{:.2%}'.format(x))
-    show_table(result, 500)
+    if drg_code or (icd_code or icd9_code):
+        # st.write(icd_code, icd9_code, drg_code)
+        result['使用率'] = result['病案数']/result['病案数'].sum()
+        result['使用率'] = result['使用率'].apply(lambda x: r'{:.2%}'.format(x))
+        show_table(result, 500)
