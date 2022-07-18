@@ -101,7 +101,7 @@ if mode == '模式1':
     df = pd.DataFrame(get_data(), columns=['诊断编码', '诊断名称', '入院病情'])
     df.index = df.index + 1
     df = df.where(df.notnull(), '')
-    selected = show_table(df, 200)
+    selected = show_table(df, 250)
     if delete:
         print(get_data())
         print(selected["selected_rows"][0])
