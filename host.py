@@ -5,10 +5,6 @@ from Widget import modal
 import datetime
 
 st.set_page_config(layout="wide", initial_sidebar_state='collapsed')
-icd10 = pd.read_csv('resource/icd10.csv', usecols=['诊断代码', '诊断名称'])
-icd9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作代码', '手术操作名称'])
-result = pd.read_csv('resource/utl_rate.csv',
-                     usecols=['主要诊断编码', '主要诊断名称', '推荐手术编码', '推荐手术名称', 'ADRG编码'])
 
 
 def show_table(df: pd.DataFrame, height):
@@ -27,6 +23,25 @@ def show_table(df: pd.DataFrame, height):
     return selection
 
 
+@st.cache()
+def base_data_icd10():
+    icd_10 = pd.read_csv('resource/icd10.csv', usecols=['诊断代码', '诊断名称'])
+    return icd_10
+
+
+@st.cache()
+def base_data_icd9():
+    icd_9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作代码', '手术操作名称'])
+    return icd_9
+
+
+@st.cache()
+def base_data_drg():
+    drg_result = pd.read_csv('resource/utl_rate.csv',
+                             usecols=['主要诊断编码', '主要诊断名称', '推荐手术编码', '推荐手术名称', 'ADRG编码', 'ADRG名称', '支付标准'])
+    return drg_result
+
+
 @st.cache(allow_output_mutation=True)
 def get_data():
     return []
@@ -37,12 +52,15 @@ def get_data_pr():
     return []
 
 
+icd10 = base_data_icd10()
+icd9 = base_data_icd9()
+result = base_data_drg()
 with st.sidebar:
     mode = st.radio('可能的编码提示模式', ('模式1', '模式2'))
 if mode == '模式1':
     st.subheader('模式1')
     st.markdown('<p class="label-font">诊断信息</p>', unsafe_allow_html=True)
-    c1, c2, c3, ce = st.columns([1, 1, 1, 7])
+    c1, c2, c3, c4, ce = st.columns([1, 1, 0.8, 1.5, 5.7])
     add_dn = c1.button('新增诊断编码', key='dn_add')
     delete = c2.button('删除所选信息', key='dn_delete')
     clear = c3.button('清除列表', key='dn_clear')
@@ -127,8 +145,8 @@ if mode == '模式1':
     if pr_clear:
         get_data_pr().clear()
         st.experimental_rerun()
-    group_search = st.button('查找常见编码组合')
 
+    group_search = st.button('查找常见编码组合')
     if group_search:
         if (len(df) == 0) and (len(df_pr)) == 0:
             st.error('请先输入诊断或手术信息')
@@ -140,7 +158,7 @@ if mode == '模式1':
             if len(df) > 0:
                 result = result[result['主要诊断编码'] == get_data()[0]['诊断编码']]
             if len(df_pr) > 0:
-                result = result[result['手术操作名称'].str.contains(get_data_pr()[0]['手术操作编码'])]
+                result = result[result['推荐手术编码'].str.contains(get_data_pr()[0]['手术操作编码'])]
             if len(result) > 0:
                 selected_combo = show_table(result, 300)
                 submit = st.button('确认')
