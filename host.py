@@ -8,17 +8,26 @@ st.set_page_config(layout="wide", initial_sidebar_state='collapsed')
 for line in open('style.css', encoding='utf-8'):
     st.markdown(f'<style>{line}</style>', unsafe_allow_html=True)
 
+
 def show_table(df: pd.DataFrame, height):
     builder = GridOptionsBuilder.from_dataframe(df)
+    builder.configure_default_column(editable=True)
+    if '入院病情' in df.columns:
+        print('a')
+        builder.configure_column('入院病情',
+                                 cellEditor='agRichSelectCellEditor',
+                                 cellEditorParams={'values': ['有', '临床未确定', '情况不明', '无']}
+                                 )
+        builder.configure_grid_options(enableRangeSelection=True)
     builder.configure_selection("single")
     selection = AgGrid(
         df,
-        # enable_enterprise_modules=True,
+        update_mode=GridUpdateMode.MODEL_CHANGED,
         gridOptions=builder.build(),
         fit_columns_on_grid_load=True,
         height=height,
         theme='light',
-        update_mode=GridUpdateMode.MODEL_CHANGED,
+        enable_enterprise_modules=True,
         allow_unsafe_jscode=True,
     )
     return selection
@@ -81,11 +90,11 @@ if mode == '模式1':
                 for i in search_list:
                     print(i)
                     icd10 = icd10[icd10['诊断名称'].str.contains(i)]
-            selected = show_table(icd10, 300)
+            selected_icd10 = show_table(icd10, 300)
             submit = st.button('确认')
             if submit:
-                get_data().append({'诊断编码': selected["selected_rows"][0]['诊断编码'],
-                                   '诊断名称': selected["selected_rows"][0]['诊断名称'],
+                get_data().append({'诊断编码': selected_icd10["selected_rows"][0]['诊断编码'],
+                                   '诊断名称': selected_icd10["selected_rows"][0]['诊断名称'],
                                    '入院病情': search_c3})
                 modal.close('icd10_modal')
 
@@ -124,11 +133,11 @@ if mode == '模式1':
                 search_list = search_c2.split(' ')
                 for i in search_list:
                     icd9 = icd9[icd9['手术操作名称'].str.contains(i)]
-            selected = show_table(icd9, 300)
+            selected_icd9 = show_table(icd9, 300)
             submit = st.button('确认')
             if submit:
-                get_data_pr().append({'手术操作编码': selected["selected_rows"][0]['手术操作编码'],
-                                      '手术操作名称': selected["selected_rows"][0]['手术操作名称'],
+                get_data_pr().append({'手术操作编码': selected_icd9["selected_rows"][0]['手术操作编码'],
+                                      '手术操作名称': selected_icd9["selected_rows"][0]['手术操作名称'],
                                       '手术时间': search_c3.strftime("%Y-%m-%d")})
                 modal.close('icd9_modal')
 
