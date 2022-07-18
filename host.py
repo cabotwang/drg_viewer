@@ -5,7 +5,8 @@ from Widget import modal
 import datetime
 
 st.set_page_config(layout="wide", initial_sidebar_state='collapsed')
-
+for line in open('style.css', encoding='utf-8'):
+    st.markdown(f'<style>{line}</style>', unsafe_allow_html=True)
 
 def show_table(df: pd.DataFrame, height):
     builder = GridOptionsBuilder.from_dataframe(df)
@@ -58,7 +59,7 @@ result = base_data_drg()
 with st.sidebar:
     mode = st.radio('可能的编码提示模式', ('模式1', '模式2'))
 if mode == '模式1':
-    st.subheader('模式1')
+    st.subheader('编码辅助工具')
     st.markdown('<p class="label-font">诊断信息</p>', unsafe_allow_html=True)
     c1, c2, c3, c4, ce = st.columns([1, 1, 0.8, 1.5, 5.7])
     add_dn = c1.button('新增诊断编码', key='dn_add')
@@ -72,7 +73,7 @@ if mode == '模式1':
             c1, c2, c3, ce = st.columns([1, 1, 1, 2])
             search_c1 = c1.text_input('请输入icd编码')
             search_c2 = c2.text_input('请输入icd名称')
-            search_c3 = c3.selectbox('是否为入院病情', ('是', '否'))
+            search_c3 = c3.selectbox('入院病情', ('有', '临床未确定', '情况不明', '无'))
             if search_c1 != '':
                 icd10 = icd10[icd10['诊断编码'].str.contains(search_c1)]
             elif search_c2 != '':
@@ -147,6 +148,7 @@ if mode == '模式1':
         st.experimental_rerun()
 
     group_search = st.button('查找常见编码组合')
+    # drg_grouper = st.button('模拟分组')
     if group_search:
         if (len(df) == 0) and (len(df_pr)) == 0:
             st.error('请先输入诊断或手术信息')
