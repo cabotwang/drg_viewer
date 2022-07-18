@@ -25,13 +25,13 @@ def show_table(df: pd.DataFrame, height):
 
 @st.cache()
 def base_data_icd10():
-    icd_10 = pd.read_csv('resource/icd10.csv', usecols=['诊断代码', '诊断名称'])
+    icd_10 = pd.read_csv('resource/icd10.csv', usecols=['诊断编码', '诊断名称'])
     return icd_10
 
 
 @st.cache()
 def base_data_icd9():
-    icd_9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作代码', '手术操作名称'])
+    icd_9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作编码', '手术操作名称'])
     return icd_9
 
 
@@ -74,7 +74,7 @@ if mode == '模式1':
             search_c2 = c2.text_input('请输入icd名称')
             search_c3 = c3.selectbox('是否为入院病情', ('是', '否'))
             if search_c1 != '':
-                icd10 = icd10[icd10['诊断代码'].str.contains(search_c1)]
+                icd10 = icd10[icd10['诊断编码'].str.contains(search_c1)]
             elif search_c2 != '':
                 search_list = search_c2.split(' ')
                 for i in search_list:
@@ -83,7 +83,7 @@ if mode == '模式1':
             selected = show_table(icd10, 300)
             submit = st.button('确认')
             if submit:
-                get_data().append({'诊断编码': selected["selected_rows"][0]['诊断代码'],
+                get_data().append({'诊断编码': selected["selected_rows"][0]['诊断编码'],
                                    '诊断名称': selected["selected_rows"][0]['诊断名称'],
                                    '入院病情': search_c3})
                 modal.close('icd10_modal')
@@ -118,7 +118,7 @@ if mode == '模式1':
             search_c2 = c2.text_input('请输入icd名称')
             search_c3 = c3.date_input('手术时间', datetime.date(2022, 7, 16), key='pr_time')
             if search_c1 != '':
-                icd9 = icd9[icd9['手术操作代码'].str.contains(search_c1)]
+                icd9 = icd9[icd9['手术操作编码'].str.contains(search_c1)]
             elif search_c2 != '':
                 search_list = search_c2.split(' ')
                 for i in search_list:
@@ -126,7 +126,7 @@ if mode == '模式1':
             selected = show_table(icd9, 300)
             submit = st.button('确认')
             if submit:
-                get_data_pr().append({'手术操作编码': selected["selected_rows"][0]['手术操作代码'],
+                get_data_pr().append({'手术操作编码': selected["selected_rows"][0]['手术操作编码'],
                                       '手术操作名称': selected["selected_rows"][0]['手术操作名称'],
                                       '手术时间': search_c3.strftime("%Y-%m-%d")})
                 modal.close('icd9_modal')
