@@ -52,6 +52,13 @@ def base_data_drg():
     return drg_result
 
 
+@st.cache()
+def base_cc_list():
+    cc_result = pd.read_csv('resource/cc_rate.csv',
+                             usecols=['主要诊断编码', '主要诊断名称', '其他诊断编码', '其他诊断名称', '并发症评级'])
+    return cc_result
+
+
 @st.cache(allow_output_mutation=True)
 def get_data():
     return []
@@ -65,6 +72,7 @@ def get_data_pr():
 icd10 = base_data_icd10()
 icd9 = base_data_icd9()
 result = base_data_drg()
+cc = base_cc_list()
 with st.sidebar:
     mode = st.radio('可能的编码提示模式', ('模式1', '模式2'))
 if mode == '模式1':
@@ -74,6 +82,7 @@ if mode == '模式1':
     add_dn = c1.button('新增诊断编码', key='dn_add')
     delete = c2.button('删除所选信息', key='dn_delete')
     clear = c3.button('清除列表', key='dn_clear')
+    cc_add = c4.button('查找常见并发症', key='cc')
     if add_dn:
         modal.open('icd10_modal')
     if modal.is_open('icd10_modal'):
@@ -97,11 +106,36 @@ if mode == '模式1':
                                    '诊断名称': selected_icd10["selected_rows"][0]['诊断名称'],
                                    '入院病情': search_c3})
                 modal.close('icd10_modal')
-
     df = pd.DataFrame(get_data(), columns=['诊断编码', '诊断名称', '入院病情'])
     df.index = df.index + 1
     df = df.where(df.notnull(), '')
     selected = show_table(df, 250)
+
+    if cc_add:
+        if len(df) < 1:
+            st.warning('请输入主诊断编码')
+        else:
+            modal.open('cc_modal')
+    if modal.is_open('cc_modal'):
+        with modal.container('cc_modal'):
+            st.write('是否有以下常见并发症')
+            print(df['诊断编码'].tolist()[0])
+            cc_df = cc[cc['主要诊断编码'] == df['诊断编码'].tolist()[0]]
+            if len(cc_df) > 0:
+                selected_cc = show_table(cc_df, 300)
+                submit = st.button('确认')
+            else:
+                st.warning('暂时没有推荐的并发症')
+                cancel = st.button('确认', key='cancel')
+                if cancel:
+                    modal.close('cc_modal')
+            if submit:
+                get_data().append({'诊断编码': selected_cc["selected_rows"][0]['其他诊断编码'],
+                                   '诊断名称': selected_cc["selected_rows"][0]['其他诊断名称'],
+                                   '入院病情': '有'})
+                modal.close('cc_modal')
+                st.experimental_rerun()
+
     if delete:
         print(get_data())
         print(selected["selected_rows"][0])
