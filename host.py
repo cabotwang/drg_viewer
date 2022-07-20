@@ -121,6 +121,7 @@ if mode == '模式1':
             st.write('是否有以下常见并发症')
             print(df['诊断编码'].tolist()[0])
             cc_df = cc[cc['主要诊断编码'] == df['诊断编码'].tolist()[0]]
+            cc_df = cc_df[['其他诊断编码', '其他诊断名称', '并发症评级']]
             if len(cc_df) > 0:
                 selected_cc = show_table(cc_df, 300)
                 submit = st.button('确认')
