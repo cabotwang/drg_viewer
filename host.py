@@ -75,7 +75,7 @@ result = base_data_drg()
 cc = base_cc_list()
 with st.sidebar:
     mode = st.radio('可能的编码提示模式', ('编码辅助工具', '图像化编码'))
-if mode == '模式1':
+if mode == '编码辅助工具':
     st.subheader('编码辅助工具')
     st.markdown('<p class="label-font">诊断信息</p>', unsafe_allow_html=True)
     c1, c2, c3, c4, ce = st.columns([1, 1, 0.8, 1.5, 5.7])
