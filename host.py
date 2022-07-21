@@ -74,7 +74,7 @@ icd9 = base_data_icd9()
 result = base_data_drg()
 cc = base_cc_list()
 with st.sidebar:
-    mode = st.radio('可能的编码提示模式', ('模式1', '模式2'))
+    mode = st.radio('可能的编码提示模式', ('编码辅助工具', '图像化编码'))
 if mode == '模式1':
     st.subheader('编码辅助工具')
     st.markdown('<p class="label-font">诊断信息</p>', unsafe_allow_html=True)
@@ -231,7 +231,7 @@ if mode == '模式1':
 
 
 else:
-    st.subheader('模式2')
+    st.subheader('图像化编码')
     c1, c2, c3, c4 = st.columns(4)
     dn1_code = c1.text_input('主要诊断编码')
     dn1_name = c2.text_input('主要诊断名称')
