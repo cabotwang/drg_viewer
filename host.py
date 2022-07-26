@@ -2,7 +2,11 @@ import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 import pandas as pd
 from Widget import modal
+from grouper import DRG_grouper
 import datetime
+import altair as alt
+import numpy as np
+# from st_clickable_images import clickable_images
 
 st.set_page_config(layout="wide", initial_sidebar_state='collapsed')
 for line in open('style.css', encoding='utf-8'):
@@ -13,7 +17,6 @@ def show_table(df: pd.DataFrame, height):
     builder = GridOptionsBuilder.from_dataframe(df)
     builder.configure_default_column(editable=True)
     if '入院病情' in df.columns:
-        print('a')
         builder.configure_column('入院病情',
                                  cellEditor='agRichSelectCellEditor',
                                  cellEditorParams={'values': ['有', '临床未确定', '情况不明', '无']}
@@ -119,23 +122,22 @@ if mode == '编码辅助工具':
     if modal.is_open('cc_modal'):
         with modal.container('cc_modal'):
             st.write('是否有以下常见并发症')
-            print(df['诊断编码'].tolist()[0])
             cc_df = cc[cc['主要诊断编码'] == df['诊断编码'].tolist()[0]]
             cc_df = cc_df[['其他诊断编码', '其他诊断名称', '并发症评级']]
             if len(cc_df) > 0:
                 selected_cc = show_table(cc_df, 300)
                 submit = st.button('确认')
+                if submit:
+                    get_data().append({'诊断编码': selected_cc["selected_rows"][0]['其他诊断编码'],
+                                       '诊断名称': selected_cc["selected_rows"][0]['其他诊断名称'],
+                                       '入院病情': '有'})
+                    modal.close('cc_modal')
+                    st.experimental_rerun()
             else:
                 st.warning('暂时没有推荐的并发症')
                 cancel = st.button('确认', key='cancel')
                 if cancel:
                     modal.close('cc_modal')
-            if submit:
-                get_data().append({'诊断编码': selected_cc["selected_rows"][0]['其他诊断编码'],
-                                   '诊断名称': selected_cc["selected_rows"][0]['其他诊断名称'],
-                                   '入院病情': '有'})
-                modal.close('cc_modal')
-                st.experimental_rerun()
 
     if delete:
         print(get_data())
@@ -192,6 +194,8 @@ if mode == '编码辅助工具':
         st.experimental_rerun()
 
     group_search = st.button('查找常见编码组合')
+    grouper = st.button('预分组')
+
     # drg_grouper = st.button('模拟分组')
     if group_search:
         if (len(df) == 0) and (len(df_pr)) == 0:
@@ -227,17 +231,64 @@ if mode == '编码辅助工具':
                                           '手术操作名称': re_pr_name_list[counter]})
                     counter += 1
                 modal.close('group_search')
+    if grouper:
+        if len(df) < 1:
+            st.error('请输入诊疗信息')
+        else:
+            pr_list_1 = []
+            DRG, drg_name, final_ccl, drg_dz = DRG_grouper(20, 70, df['诊断编码'].tolist(), df_pr['手术操作编码'].tolist())
+            with st.expander('模拟分组结果', expanded=True):
+                st.write('DRG：%s %s' % (DRG, drg_name))
+                st.write('并发症评级：%s' % final_ccl)
+                c1, c2, c3 = st.columns(3)
+                c1.write('权重：%s' % drg_dz)
+                c2.write('支付标准：%s' % int(drg_dz*90.85753))
+                data = [{'类型': '低倍率', '实际医疗费用': 0, '支付标准': 0},
+                        {'类型': '低倍率', '实际医疗费用': int(drg_dz*90.85753*0.3), '支付标准': int(drg_dz*90.85753*0.3)},
+                        {'类型': '正常倍率', '实际医疗费用': int(drg_dz*90.85753*0.3), '支付标准': int(drg_dz*90.85753)},
+                        {'类型': '正常倍率', '实际医疗费用': int(drg_dz*90.85753*3), '支付标准': int(drg_dz*90.85753)},
+                        {'类型': '高倍率', '实际医疗费用': int(drg_dz*90.85753*3), '支付标准': int(drg_dz*90.85753)},
+                        {'类型': '高倍率', '实际医疗费用': int(drg_dz*90.85753*4), '支付标准': int(drg_dz*90.85753*2)}]
+                df_data = pd.DataFrame(data)
+
+                c = alt.Chart(df_data).mark_line().encode(
+                    x='实际医疗费用',
+                    y='支付标准',
+                    color='类型',
+                    strokeDash='类型',
+                )
+                st.altair_chart(c, use_container_width=True)
 
 
 
 else:
     st.subheader('图像化编码')
-    c1, c2, c3, c4 = st.columns(4)
-    dn1_code = c1.text_input('主要诊断编码')
-    dn1_name = c2.text_input('主要诊断名称')
-    dn2_code = c3.text_input('其他诊断编码')
-    dn2_name = c4.text_input('其他诊断名称')
-    pr1_code = c1.text_input('主要手术编码')
-    pr1_name = c2.text_input('主要手术名称')
-    pr2_code = c3.text_input('主要手术编码-1')
-    pr2_name = c4.text_input('主要手术名称-1')
+    c1, c2, c3, c4, c5, c6, ce, c7 = st.columns([1, 1, 0.2, 0.4, 0.2, 0.4, 2.5, 0.2])
+    system = c1.selectbox('身体系统', ('器官', '骨骼', '血液', '神经'))
+    info = c2.selectbox('描述', ())
+    male = c3.button('男')
+    female = c4.button('女')
+
+    left = c5.button('左')
+    right = c6.button('右')
+    back = c7.button('↩')
+
+    # c1, ce, c2 = st.columns([1, 0.07, 3])
+    # with c1:
+    #     images = []
+    #     for file in ['picture/AO/1123.BMP', 'picture/AO/2123.BMP', 'picture/AO/3123.BMP', 'picture/AO/41234.BMP']:
+    #         with open(file, "rb") as image:
+    #             encoded = base64.b64encode(image.read()).decode()
+    #             images.append(f"data:image/jpeg;base64,{encoded}")
+    #
+    #     clicked = clickable_images(
+    #         images,
+    #         titles=[f"Image #{str(i)}" for i in range(len(images))],
+    #         div_style={"display": "flex", "justify-content": "left", "flex-wrap": "wrap"},
+    #         img_style={"margin": "25px", "height": "200px"},
+    #     )
+    #
+    #     print(clicked)
+    # postiont_dict = {0: '肱骨', 1: '尺桡骨', 2: '股骨', 3: '胫腓骨'}
+    # if clicked > -1:
+    #     c2.write('所选部位：%s' % postiont_dict[clicked])
