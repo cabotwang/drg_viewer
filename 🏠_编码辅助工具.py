@@ -37,15 +37,50 @@ def show_table(df: pd.DataFrame, height):
     return selection
 
 
+def show_table_tree(df: pd.DataFrame, height):
+    # rank = df.groupby(df.columns[2])[df.columns[0]].count().reset_index()
+    # rank.columns = [df.columns[2], '数目']
+    # df = pd.merge(df, rank, on=df.columns[2], how='left')
+    # df.sort_values(by='数目', inplace=True, ascending=False)
+    # print(df)
+    gridOptions = {
+        "rowSelection": "single",
+        'columnDefs': [
+            {'field': df.columns[2], 'rowGroup': True, 'hide': True},
+            {'field': df.columns[3], 'rowGroup': True, 'hide': True},
+            {'field': df.columns[4], 'rowGroup': True, 'hide': True},
+            {'field': df.columns[5], 'rowGroup': True, 'hide': True},
+            {'field': df.columns[0]},
+        ],
+        'autoGroupColumnDef': {
+            'headerName': '诊断编码',
+            'field': df.columns[1],
+            'minWidth': 400,
+        },
+        'groupDisplayType': 'singleColumn'
+    }
+
+    selection = AgGrid(
+        df,
+        gridOptions=gridOptions,
+        height=height,
+        allow_unsafe_jscode=True,
+        fit_columns_on_grid_load=True,
+        enable_enterprise_modules=True,
+        update_mode=GridUpdateMode.SELECTION_CHANGED
+    )
+    return selection
+
+
 @st.cache()
 def base_data_icd10():
-    icd_10 = pd.read_csv('resource/icd10.csv', usecols=['诊断编码', '诊断名称'])
+    icd_10 = pd.read_csv('resource/icd10.csv', usecols=['诊断编码', '诊断名称', '章的名称', '节名称', '类目名称', '亚目代码'])
     return icd_10
 
 
 @st.cache()
 def base_data_icd9():
-    icd_9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作编码', '手术操作名称'])
+    icd_9 = pd.read_csv('resource/icd9.csv', usecols=['手术操作编码', '手术操作名称', '章的名称', '节名称', '类目名称', '亚目代码'])
     return icd_9
 
 
@@ -101,7 +136,7 @@ if modal.is_open('icd10_modal'):
             for i in search_list:
                 print(i)
                 icd10 = icd10[icd10['诊断名称'].str.contains(i)]
-        selected_icd10 = show_table(icd10, 300)
+        selected_icd10 = show_table_tree(icd10, 300)
         submit = st.button('确认')
         if submit:
             get_data().append({'诊断编码': selected_icd10["selected_rows"][0]['诊断编码'],
@@ -153,7 +188,7 @@ c1, c2, c3, c4, ce = st.columns([1, 1, 0.8, 1.5, 5.7])
 pr_add = c1.button('新增手术编码', key='pr_add')
 pr_delete = c2.button('删除所选信息', key='pr_delete')
 pr_clear = c3.button('清除列表', key='pr_clear')
-group_search = c4.button('查找常见编码组合', key='search')
+group_search = c4.button('查找常见手术诊断组合', key='search')
 if pr_add:
     modal.open('icd9_modal')
 if modal.is_open('icd9_modal'):
@@ -169,7 +204,7 @@ if modal.is_open('icd9_modal'):
             search_list = search_c2.split(' ')
             for i in search_list:
                 icd9 = icd9[icd9['手术操作名称'].str.contains(i)]
-        selected_icd9 = show_table(icd9, 300)
+        selected_icd9 = show_table_tree(icd9, 300)
         submit = st.button('确认')
         if submit:
             get_data_pr().append({'手术操作编码': selected_icd9["selected_rows"][0]['手术操作编码'],
