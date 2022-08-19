@@ -6,102 +6,71 @@ import base64
 from PIL import Image
 import streamlit.components.v1 as components
 
-pic_dict_sample = {}
+bone_position_dict = {'肱骨': ['近端', '骨干', '远端'], '尺桡骨': ['近端', '骨干', '远端'], '股骨': ['近端', '骨干', '远端'],
+                      '胫腓骨': ['近端', '骨干', '远端'], '骨盆': ['骨盆环', '髋臼']}
+
+bone_pc_dict = {('肱骨', '近端'): '11ABC', ('肱骨', '骨干'): '12ABC', ('肱骨', '远端'): '13ABC',
+                ('尺桡骨', '近端'): '21ABC', ('尺桡骨', '骨干'): '22ABC', ('尺桡骨', '远端'): '23ABC',
+                ('股骨', '近端'): '31ABC', ('股骨', '骨干'): '32ABC', ('股骨', '远端'): '33ABC',
+                ('胫腓骨', '近端'): '41ABC', ('胫腓骨', '骨干'): '42ABC', ('胫腓骨', '远端'): '43ABC',
+                ('骨盆', '骨盆环'): '61ABC', ('胫腓骨', '髋臼'): '62ABC'}
+
 
 class graphyApp(HydraHeadApp):
     def run(self):
+        c1, c2, c0 = st.columns([1, 1, 3])
+        bone = c1.selectbox('请选择骨折部位', ('肱骨', '尺桡骨', '股骨', '胫腓骨', '骨盆'))
+        position = c2.selectbox('请选择骨折节段', set(bone_position_dict[bone]))
 
-        pic_name = '11ABC'
-        file_ = open(f"picture/肱骨/{pic_name}.png", "rb")
-        contents = file_.read()
-        data_url = base64.b64encode(contents).decode("utf-8")
-        file_.close()
-        # "data:image/gif;base64,""" + data_url + """"
+        pc_df = pd.read_excel('resource/图像化编码点位图.xlsx', usecols=['图像名称', '形状', '点位1', '点位2', '点位3', '点位4',
+                                                                 '术语编码', '术语名称', 'ICD编码', 'ICD名称'])
 
+        def bone_pic(pic_name):
+            file_ = open(f"picture/肱骨/{pic_name}.png", "rb")
+            contents = file_.read()
+            data_url = base64.b64encode(contents).decode("utf-8")
+            file_.close()
+            selected_df = pc_df[pc_df['图像名称'] == pic_name]
+            full_text = ''
+            func_text = ''
+            for index, col in selected_df.iterrows():
+                text1 = '''<area shape=''' + str(col['图像名称']) + ''' coords="''' + \
+                        ','.join([str(col['点位1']), str(col['点位2']), str(col['点位3']), str(col['点位4'])]) \
+                        + '''" onclick="myFunction_''' + str(index + 1) + '''()">'''
+                full_text = full_text + '\n' + text1
+                text2 = '''<script>
+                    function myFunction_''' + str(index + 1) + '''() {
+                        document.getElementById("chgtext2").innerHTML = "''' + ' '.join(
+                    [str(col['ICD编码']), str(col['ICD名称'])]) + '''",  document.getElementById("chgtext1").innerHTML = 
+                    "''' + str(col['术语名称']) + '''" 
+                    }
+                    </script>'''
+                func_text = func_text + text2
+                print(func_text)
 
-        # bootstrap 4 collapse example
-        components.html(
-            """
-                <!DOCTYPE html>
-                <html>
-                <body>
+            components.html(
+                """
+                    <!DOCTYPE html>
+                    <html>
+                    <body>
+    
+                    <p>点击图片，选择对应的骨折类型:</p>
+    
+                    <img src="data:image/gif;base64,""" + data_url + """" width="500" height="500" alt="Planets" usemap="#planetmap">
+    
+                    <map name="planetmap"> """ +
+                full_text +
+                """
+                    </map>
+                """ +
+                func_text +
+                """
+                    <p id="chgtext1"></p>
+                        <div id="chgtext2"></div>
+                    </body>
+                    </html>
+                """,
+                height=900,
+            )
 
-                <p>点击图片，选择对应的骨折类型:</p>
-                 <div id="chgtext"></div>
-
-                <img src="data:image/gif;base64,""" + data_url + """" width="500" height="500" alt="Planets" usemap="#planetmap">
-
-                <map name="planetmap">
-                  <area shape="rect" coords="15,15,150,150" alt="Sun" onclick="myFunction_1()">
-                  <area shape="rect" coords="180,11,290,150" alt="Mercury" onclick="myFunction_2()">
-                  <area shape="rect" coords="348,13,457,156" alt="Venus" onclick="myFunction_3()">
-                  <area shape="rect" coords="34,174,142,320" alt="Sun" onclick="myFunction_4()">
-                  <area shape="rect" coords="171,178,285,325" alt="Mercury" onclick="myFunction_5()">
-                  <area shape="rect" coords="335,186,447,325" alt="Venus" onclick="myFunction_6()">
-                  <area shape="rect" coords="29,346,145,485" alt="Sun" onclick="myFunction_7()">
-                  <area shape="rect" coords="171,346,285,485" alt="Mercury" onclick="myFunction_8()">
-                  <area shape="rect" coords="355,346,447,485" alt="Venus" onclick="myFunction_9()">
-                </map>
-
-                <script>
-                function myFunction_1() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x041	肱骨大结节骨折"
-                }
-                </script>
-
-                <script>
-                function myFunction_2() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x091	肱骨小结节骨折"
-                }
-                </script>
-
-                            <script>
-                function myFunction_3() {
-                    document.getElementById("chgtext").innerHTML = "S42.202	肱骨外科颈骨折"
-                }
-                </script>
-
-                <script>
-                function myFunction_4() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x031	肱骨解剖颈骨折"
-                }
-                </script>
-                
-                <script>
-                function myFunction_5() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x092	肱骨近端多发性骨折"
-                }
-                </script>
-                
-                <script>
-                function myFunction_6() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x031	肱骨解剖颈骨折"
-                }
-                </script>
-                
-                <script>
-                function myFunction_7() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x093	肱骨近端多发性骨折"
-                }
-                </script>
-                
-                <script>
-                function myFunction_8() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x093	肱骨近端多发性骨折"
-                }
-                </script>
-                
-                <script>
-                function myFunction_9() {
-                    document.getElementById("chgtext").innerHTML = "S42.200x093	肱骨近端多发性骨折"
-                }
-                </script>
-                </body>
-                </html>
-            """,
-            height=900,
-        )
-
-
-
-
+        bone_pic(bone_pc_dict[(bone, position)])
