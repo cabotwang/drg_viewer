@@ -22,7 +22,7 @@ class graphyApp(HydraHeadApp):
         bone = c1.selectbox('请选择骨折部位', ('肱骨', '尺桡骨', '股骨', '胫腓骨', '骨盆'))
         position = c2.selectbox('请选择骨折节段', set(bone_position_dict[bone]))
 
-        pc_df = pd.read_excel('resource/图像化编码点位图.xlsx', usecols=['图像名称', '形状', '点位1', '点位2', '点位3', '点位4',
+        pc_df = pd.read_csv('resource/图像化编码点位图.csv', usecols=['图像名称', '形状', '点位1', '点位2', '点位3', '点位4',
                                                                  '术语编码', '术语名称', 'ICD编码', 'ICD名称'])
 
         def bone_pic(pic_name):
