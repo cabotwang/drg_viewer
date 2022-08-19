@@ -1,4 +1,6 @@
 import re, time
+
+import numpy as np
 import pandas as pd
 
 
@@ -143,6 +145,11 @@ def DRG_grouper(age, weight, dn_list, pr_list):
 
 
 if __name__ == '__main__':
-    DRG_grouper(20, 70, ['D06.900', 'A49.809'],
-                [])
-    # print(min(['AB1', 'BC1', 'AA2']))
+    # DRG_grouper(20, 70, ['D06.900', 'A49.809'], [])
+    #
+    level = 1000
+    x1 = np.array(range(0, 401))*(level/100)
+    y1 = x1
+    data = pd.DataFrame
+
+    print(data)
