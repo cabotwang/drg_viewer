@@ -1,5 +1,4 @@
 import re, time
-
 import numpy as np
 import pandas as pd
 
@@ -141,15 +140,11 @@ def DRG_grouper(age, weight, dn_list, pr_list):
     drg_name = slide_DRG.loc[DRG, 'DRG名称']
     drg_dz = slide_DRG.loc[DRG, '基础点数']
     print(DRG, drg_name, final_ccl, drg_dz)
-    return DRG, drg_name, final_ccl, drg_dz
+
+    return DRG, drg_name, final_ccl, drg_dz, 3
 
 
 if __name__ == '__main__':
     # DRG_grouper(20, 70, ['D06.900', 'A49.809'], [])
-    #
-    level = 1000
-    x1 = np.array(range(0, 401))*(level/100)
-    y1 = x1
-    data = pd.DataFrame
 
     print(data)

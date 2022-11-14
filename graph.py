@@ -3,7 +3,6 @@ import pandas as pd
 from Widget import modal
 from Widget.Hydralit import HydraHeadApp
 import base64
-from PIL import Image
 import streamlit.components.v1 as components
 
 bone_position_dict = {'肱骨': ['近端', '骨干', '远端'], '尺桡骨': ['近端', '骨干', '远端'], '股骨': ['近端', '骨干', '远端'],

@@ -1,6 +1,7 @@
 import streamlit
-st_ver = int(streamlit.__version__.replace('.',''))
+st_ver = int(streamlit.__version__.replace('.', ''))
 
+print(st_ver)
 if st_ver < 140:
     import streamlit.report_thread as ReportThread
 elif st_ver < 180:

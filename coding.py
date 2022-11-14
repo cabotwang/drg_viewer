@@ -272,12 +272,13 @@ class codingApp(HydraHeadApp):
                 st.error('请输入诊疗信息')
             else:
                 pr_list_1 = []
-                DRG, drg_name, final_ccl, drg_dz = DRG_grouper(20, 70, df['诊断编码'].tolist(), df_pr['手术操作编码'].tolist())
+                DRG, drg_name, final_ccl, drg_dz, Pccl = DRG_grouper(20, 70, df['诊断编码'].tolist(), df_pr['手术操作编码'].tolist())
                 with st.expander('模拟分组结果', expanded=True):
                     st.write('DRG：%s %s' % (DRG, drg_name))
                     st.write('并发症评级：%s' % final_ccl)
                     st.write('权重：%s' % drg_dz)
                     st.write('支付标准：%s' % int(drg_dz * 90.85753))
+                    st.write('PCCL：%s' % Pccl)
                     data = [{'类型': '低倍率', '实际医疗费用': 0, '支付标准': 0},
                             {'类型': '低倍率', '实际医疗费用': int(drg_dz * 90.85753 * 0.3), '支付标准': int(drg_dz * 90.85753 * 0.3)},
                             {'类型': '正常倍率', '实际医疗费用': int(drg_dz * 90.85753 * 0.3), '支付标准': int(drg_dz * 90.85753)},
