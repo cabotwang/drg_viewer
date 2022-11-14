@@ -173,7 +173,7 @@ def DRG_grouper(age, weight, dn_list, pr_list):
     drg_dz = slide_DRG.loc[DRG, '基础点数']
     print(DRG, drg_name, final_ccl, drg_dz)
 
-    pccl = PCCL(adrg, dn_list[1:])
+    pccl = round(PCCL(adrg, dn_list[1:]), 2)
     return DRG, drg_name, final_ccl, drg_dz, pccl
 
 
