@@ -1,6 +1,7 @@
 import re, time
 import numpy as np
 import pandas as pd
+import math
 
 
 # 特殊分组规则组别
@@ -25,9 +26,40 @@ cc_list = pd.read_json('resource/cc_list.json')
 cc_list.set_index(['ICD-10 code'], inplace=True)
 MI = pd.read_json('resource/MI.json')
 MI.set_index(['编码'], inplace=True)
+pccl_adrg = pd.read_json('resource/pccl_adrg.json')
+pccl_adrg = pccl_adrg.set_index('ADRG')
+pccl_cc = pd.read_json('resource/pccl_cc.json')
+pccl_cc = pccl_cc.set_index('并发症编码')
+pccl_matrix = pd.read_json('resource/pccl_matrix.json')
+pccl_matrix = pccl_matrix.set_index('序号')
+print(pccl_matrix.columns)
 
 
 def DRG_grouper(age, weight, dn_list, pr_list):
+    # PCCL模型
+    def PCCL(a_drg, DN_list):
+        adrg_pcc_gr = pccl_adrg.loc[a_drg, 'ADRG组别']
+        pccl_list = []
+        for n in DN_list:
+            try:
+                cc_pccl_gr = pccl_cc.loc[n[0:5], 'CcRow']
+                print(pccl_matrix.loc[cc_pccl_gr, str(adrg_pcc_gr)])
+                pccl_list.append(pccl_matrix.loc[cc_pccl_gr, str(adrg_pcc_gr)])
+            except KeyError:
+                pass
+        pccl_list.sort(reverse=True)
+        pccl_sum = 0
+        for i in range(0, len(pccl_list)):
+            pccl_sum += pccl_list[i] * math.exp(-0.4 * (i - 2 + 1))
+        if pccl_sum > 5.83:
+            pccl_level = 1.25 * 4 / math.log(3 / 0.4) * (pccl_sum / 5.83 - 1) + 3.5
+        elif pccl_sum <= 0:
+            return 0
+        else:
+            pccl_level = 4 / math.log(3 / 0.4) * math.log(pccl_sum)
+        print(pccl_level)
+        return pccl_level
+
     t1 = time.time()
     print(age, weight, dn_list, pr_list)
     try:
@@ -141,10 +173,34 @@ def DRG_grouper(age, weight, dn_list, pr_list):
     drg_dz = slide_DRG.loc[DRG, '基础点数']
     print(DRG, drg_name, final_ccl, drg_dz)
 
-    return DRG, drg_name, final_ccl, drg_dz, 3
+    pccl = PCCL(adrg, dn_list[1:])
+    return DRG, drg_name, final_ccl, drg_dz, pccl
+
+
+def PCCL(a_drg, DN_list):
+    adrg_pcc_gr = pccl_adrg.loc[a_drg, 'ADRG组别']
+    pccl_list = []
+    for n in DN_list:
+        try:
+            cc_pccl_gr = pccl_cc.loc[n[0:5], 'CcRow']
+            print(pccl_matrix.loc[cc_pccl_gr, str(adrg_pcc_gr)])
+            pccl_list.append(pccl_matrix.loc[cc_pccl_gr, str(adrg_pcc_gr)])
+        except KeyError:
+            pass
+    pccl_list.sort(reverse=True)
+    pccl_sum = 0
+    for i in range(0, len(pccl_list)):
+        pccl_sum += pccl_list[i]*math.exp(-0.4*(i-2+1))
+    if pccl_sum > 5.83:
+        pccl_level = 1.25*4/math.log(3/0.4)*(pccl_sum/5.83-1)+3.5
+    elif pccl_sum <= 0:
+        return 0
+    else:
+        pccl_level = 4 / math.log(3 / 0.4) * math.log(pccl_sum)
+    print(pccl_level)
+    return pccl_level
 
 
 if __name__ == '__main__':
     # DRG_grouper(20, 70, ['D06.900', 'A49.809'], [])
-
-    print(data)
+    PCCL('HT1', ['D36.714',	'A03.900x009', 'N17.900x002', 'J96.000'])
