@@ -26,7 +26,6 @@ class codingApp(HydraHeadApp):
                 gridOptions=builder.build(),
                 fit_columns_on_grid_load=True,
                 height=height,
-                theme='light',
                 enable_enterprise_modules=True,
                 allow_unsafe_jscode=True,
             )
